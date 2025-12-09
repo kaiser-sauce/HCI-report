@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>吹气球对战</title>
+    <title>息吹きバルーン対戦</title>
     <style>
         * {
             margin: 0;
@@ -13,15 +13,15 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Yu Gothic", YuGothic, sans-serif;
+            background: #f5f5f5;
             height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            touch-action: none;
+            color: #333;
         }
 
         #gameContainer {
@@ -33,6 +33,7 @@
             justify-content: space-between;
             padding: 20px;
             position: relative;
+            background: white;
         }
 
         #startScreen, #resultScreen {
@@ -41,49 +42,58 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 100;
-            padding: 30px;
+            padding: 40px;
             text-align: center;
         }
 
         #startScreen h1 {
-            color: white;
-            font-size: 2em;
-            margin-bottom: 20px;
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #333;
+            letter-spacing: 2px;
         }
 
         .instructions {
-            color: #ccc;
-            font-size: 1em;
-            line-height: 1.8;
-            margin-bottom: 30px;
+            font-size: 0.95em;
+            line-height: 2;
+            margin-bottom: 40px;
             text-align: left;
+            color: #666;
             max-width: 350px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 3px solid #333;
         }
 
-        .instructions strong {
-            color: #fff;
-            font-size: 1.1em;
+        .instructions div {
+            margin: 8px 0;
         }
 
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #333;
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.2em;
-            border-radius: 30px;
+            padding: 16px 48px;
+            font-size: 1em;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #555;
         }
 
         button:active {
-            transform: scale(0.95);
+            transform: scale(0.98);
         }
 
         #opponentArea {
@@ -92,6 +102,7 @@
             justify-content: center;
             align-items: center;
             position: relative;
+            border-bottom: 1px dashed #ddd;
         }
 
         #playerArea {
@@ -107,7 +118,7 @@
             border-radius: 50%;
             position: relative;
             transition: background-color 0.3s;
-            box-shadow: inset -20px -20px 50px rgba(0,0,0,0.2);
+            border: 2px solid #333;
         }
 
         .balloon::after {
@@ -122,11 +133,11 @@
         }
 
         #playerBalloon {
-            background: radial-gradient(circle at 30% 30%, #4facfe 0%, #00f2fe 100%);
+            background: #4A90E2;
         }
 
         #opponentBalloon {
-            background: radial-gradient(circle at 30% 30%, #fa709a 0%, #fee140 100%);
+            background: #F5A623;
         }
 
         .hidden {
@@ -140,69 +151,53 @@
             right: 20px;
             display: flex;
             justify-content: space-between;
-            color: white;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 0.9em;
+            font-weight: 500;
+            color: #999;
+            font-family: 'Courier New', monospace;
         }
 
-        #blowButton {
-            margin-top: 40px;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border: 5px solid white;
-            font-size: 1.5em;
-            font-weight: bold;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s;
-        }
-
-        #blowButton:active {
-            transform: scale(0.9);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        #blowButton.pressed {
-            background: linear-gradient(135deg, #fa709a 0%, #ff6b95 100%);
-            animation: pulse-button 0.5s infinite;
-        }
-
-        @keyframes pulse-button {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        #instruction {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.1em;
+            color: #666;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #ddd;
         }
 
         #battleButton {
-            margin-top: 20px;
-            padding: 20px 50px;
-            font-size: 1.3em;
-            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            margin-top: 30px;
+            padding: 16px 60px;
+            font-size: 1.1em;
+            background: #E74C3C;
             animation: pulse 2s infinite;
         }
 
+        #battleButton:hover {
+            background: #C0392B;
+        }
+
         @keyframes pulse {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
         }
 
         @keyframes shake {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            10% { transform: translate(-3px, -3px) rotate(-2deg); }
-            20% { transform: translate(3px, 3px) rotate(2deg); }
-            30% { transform: translate(-3px, 3px) rotate(-2deg); }
-            40% { transform: translate(3px, -3px) rotate(2deg); }
-            50% { transform: translate(-3px, -3px) rotate(-2deg); }
-            60% { transform: translate(3px, 3px) rotate(2deg); }
-            70% { transform: translate(-3px, 3px) rotate(-2deg); }
-            80% { transform: translate(3px, -3px) rotate(2deg); }
-            90% { transform: translate(-3px, -3px) rotate(-2deg); }
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-3px, -3px); }
+            20% { transform: translate(3px, 3px); }
+            30% { transform: translate(-3px, 3px); }
+            40% { transform: translate(3px, -3px); }
+            50% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            70% { transform: translate(-3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            90% { transform: translate(-3px, -3px); }
         }
 
         .shaking {
@@ -213,31 +208,34 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 4em;
+            font-size: 3em;
             color: white;
             border-radius: 50%;
+            font-weight: bold;
         }
 
         #resultScreen h2 {
-            color: white;
-            font-size: 2.5em;
+            font-size: 2em;
             margin-bottom: 20px;
+            font-weight: 600;
+            color: #333;
         }
 
         #resultScreen p {
-            color: #ccc;
-            font-size: 1.3em;
+            font-size: 1.1em;
             margin-bottom: 30px;
+            color: #666;
+            font-family: 'Courier New', monospace;
         }
 
         .particle {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             pointer-events: none;
         }
@@ -246,73 +244,56 @@
             position: absolute;
             bottom: 10px;
             left: 10px;
-            color: rgba(255,255,255,0.5);
-            font-size: 0.8em;
-            font-family: monospace;
+            right: 10px;
+            font-size: 0.75em;
+            font-family: 'Courier New', monospace;
+            color: #999;
+            text-align: center;
+            background: rgba(255,255,255,0.9);
+            padding: 8px;
+            border-top: 1px solid #ddd;
         }
 
-        .method-selector {
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
+        .prototype-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.7em;
+            color: #999;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
         }
 
-        .method-option {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-            color: white;
-            cursor: pointer;
-        }
-
-        .method-option input {
-            margin-right: 10px;
-            cursor: pointer;
-        }
-
-        .method-option label {
-            cursor: pointer;
-            font-size: 1em;
+        .note {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 20px;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
     <div id="gameContainer">
+        <div class="prototype-label">PROTOTYPE v1.0</div>
+
         <div id="startScreen">
-            <h1>🎈 吹气球对战</h1>
+            <h1>息吹きバルーン対戦</h1>
             <div class="instructions">
-                <strong>🎮 游戏规则：</strong><br>
-                1️⃣ <strong>按住按钮</strong>对着麦克风吹气<br>
-                2️⃣ 气球会随吹气膨胀<br>
-                3️⃣ 超过75%会变红抖动⚠️<br>
-                4️⃣ 达到100%会爆炸💥<br>
-                5️⃣ 松开按钮后点击"对战"<br>
-                6️⃣ 气球大的获胜🏆
+                <div>【ゲームルール】</div>
+                <div>• マイクに息を吹きかける</div>
+                <div>• バルーンが膨らむ</div>
+                <div>• 75%を超えると危険状態</div>
+                <div>• 100%に達すると破裂</div>
+                <div>• 画面タップで対戦開始</div>
+                <div>• 大きい方が勝利</div>
             </div>
-            
-            <div class="method-selector">
-                <div style="color: white; margin-bottom: 10px; font-weight: bold;">选择控制方式：</div>
-                <div class="method-option">
-                    <input type="radio" id="method1" name="method" value="button" checked>
-                    <label for="method1">🎯 按住按钮吹气（推荐）</label>
-                </div>
-                <div class="method-option">
-                    <input type="radio" id="method2" name="method" value="frequency">
-                    <label for="method2">🔬 频率识别（实验性）</label>
-                </div>
-                <div class="method-option">
-                    <input type="radio" id="method3" name="method" value="continuous">
-                    <label for="method3">⏱️ 持续音量（简单）</label>
-                </div>
-            </div>
-            
-            <button id="startBtn">开始游戏</button>
+            <div class="note">※ 周波数解析により息吹きを検出</div>
+            <button id="startBtn">スタート</button>
         </div>
 
         <div id="stats">
-            <span id="playerSize">你: 0%</span>
-            <span id="opponentSize">对手: ???</span>
+            <span id="playerSize">プレイヤー: ???</span>
+            <span id="opponentSize">相手: ???</span>
         </div>
 
         <div id="opponentArea">
@@ -321,21 +302,23 @@
             </div>
         </div>
 
-        <div id="playerArea">
-            <div id="playerBalloon" class="balloon hidden" style="width: 80px; height: 80px;"></div>
-            <button id="blowButton" class="hidden">
-                💨<br>
-                <span style="font-size: 0.6em;">按住吹气</span>
-            </button>
-            <button id="battleButton" class="hidden">⚔️ 开始对战</button>
+        <div id="instruction" class="hidden">
+            マイクに向かって息を吹いてください
         </div>
 
-        <div id="debugInfo"></div>
+        <div id="playerArea">
+            <div id="playerBalloon" class="balloon hidden" style="width: 80px; height: 80px;"></div>
+            <button id="battleButton" class="hidden">対戦開始</button>
+        </div>
+
+        <div id="debugInfo" class="hidden">
+            音量: -- | 低周波: -- | 比率: --
+        </div>
 
         <div id="resultScreen" class="hidden">
             <h2 id="resultTitle"></h2>
             <p id="resultText"></p>
-            <button id="restartBtn">再玩一次</button>
+            <button id="restartBtn">もう一度</button>
         </div>
     </div>
 
@@ -348,10 +331,6 @@
         let gameState = 'start';
         let playerSize = 0;
         let opponentSize = 0;
-        let isBlowing = false;
-        let detectionMethod = 'button';
-        let continuousHighVolumeCount = 0;
-        let lastVolumeTime = 0;
         
         const maxSize = 100;
         const dangerThreshold = 75;
@@ -363,51 +342,19 @@
         const restartBtn = document.getElementById('restartBtn');
         const playerBalloon = document.getElementById('playerBalloon');
         const opponentBalloon = document.getElementById('opponentBalloon');
+        const instruction = document.getElementById('instruction');
         const playerSizeDisplay = document.getElementById('playerSize');
         const opponentSizeDisplay = document.getElementById('opponentSize');
         const coverMask = document.getElementById('coverMask');
-        const blowButton = document.getElementById('blowButton');
         const battleButton = document.getElementById('battleButton');
         const debugInfo = document.getElementById('debugInfo');
+        const gameContainer = document.getElementById('gameContainer');
 
         startBtn.addEventListener('click', initGame);
         restartBtn.addEventListener('click', resetGame);
         battleButton.addEventListener('click', handleBattle);
 
-        // 按钮控制
-        blowButton.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (detectionMethod === 'button') {
-                isBlowing = true;
-                blowButton.classList.add('pressed');
-            }
-        });
-
-        blowButton.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            if (detectionMethod === 'button') {
-                isBlowing = false;
-                blowButton.classList.remove('pressed');
-            }
-        });
-
-        blowButton.addEventListener('mousedown', () => {
-            if (detectionMethod === 'button') {
-                isBlowing = true;
-                blowButton.classList.add('pressed');
-            }
-        });
-
-        blowButton.addEventListener('mouseup', () => {
-            if (detectionMethod === 'button') {
-                isBlowing = false;
-                blowButton.classList.remove('pressed');
-            }
-        });
-
         async function initGame() {
-            detectionMethod = document.querySelector('input[name="method"]:checked').value;
-            
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -425,14 +372,15 @@
                 startScreen.classList.add('hidden');
                 playerBalloon.classList.remove('hidden');
                 opponentBalloon.classList.remove('hidden');
-                blowButton.classList.remove('hidden');
+                instruction.classList.remove('hidden');
                 battleButton.classList.remove('hidden');
+                debugInfo.classList.remove('hidden');
                 
                 gameState = 'blowing';
                 opponentSize = Math.floor(Math.random() * 36) + 60;
                 updateGame();
             } catch (err) {
-                alert('需要麦克风权限才能玩游戏！请允许使用麦克风。');
+                alert('マイクの許可が必要です。\n\nブラウザの設定でマイクを許可してください。');
             }
         }
 
@@ -442,40 +390,15 @@
             
             const volume = dataArray.reduce((a, b) => a + Math.abs(b - 128)) / dataArray.length;
             
-            switch(detectionMethod) {
-                case 'button':
-                    return isBlowing && volume > 10;
-                    
-                case 'frequency':
-                    // 分析低频能量（0-500Hz）
-                    const lowFreqEnergy = frequencyData.slice(0, 20).reduce((a, b) => a + b) / 20;
-                    const midFreqEnergy = frequencyData.slice(20, 80).reduce((a, b) => a + b) / 60;
-                    const ratio = lowFreqEnergy / (midFreqEnergy + 1);
-                    
-                    debugInfo.textContent = `音量: ${volume.toFixed(1)} | 低频: ${lowFreqEnergy.toFixed(1)} | 比率: ${ratio.toFixed(2)}`;
-                    
-                    // 吹气特征：低频能量高，且音量适中
-                    return volume > 15 && volume < 80 && ratio > 1.2;
-                    
-                case 'continuous':
-                    // 持续性检测
-                    const currentTime = Date.now();
-                    if (volume > 20) {
-                        if (currentTime - lastVolumeTime < 200) {
-                            continuousHighVolumeCount++;
-                        } else {
-                            continuousHighVolumeCount = 1;
-                        }
-                        lastVolumeTime = currentTime;
-                    } else {
-                        continuousHighVolumeCount = 0;
-                    }
-                    
-                    debugInfo.textContent = `音量: ${volume.toFixed(1)} | 连续: ${continuousHighVolumeCount}`;
-                    
-                    // 需要持续3帧以上的音量输入
-                    return continuousHighVolumeCount >= 3;
-            }
+            // 低周波エネルギー分析 (0-500Hz)
+            const lowFreqEnergy = frequencyData.slice(0, 20).reduce((a, b) => a + b) / 20;
+            const midFreqEnergy = frequencyData.slice(20, 80).reduce((a, b) => a + b) / 60;
+            const ratio = lowFreqEnergy / (midFreqEnergy + 1);
+            
+            debugInfo.textContent = `音量: ${volume.toFixed(1)} | 低周波: ${lowFreqEnergy.toFixed(1)} | 比率: ${ratio.toFixed(2)}`;
+            
+            // 息吹き特徴: 低周波エネルギーが高く、音量が適度
+            return volume > 15 && volume < 80 && ratio > 1.2;
         }
 
         function updateGame() {
@@ -484,7 +407,6 @@
             const blowingDetected = detectBlowing();
             
             if (blowingDetected) {
-                const intensity = Math.min(analyser.getByteTimeDomainData(dataArray), 1);
                 playerSize += 0.8;
                 playerSize = Math.min(playerSize, burstThreshold);
             }
@@ -503,20 +425,24 @@
             const size = 80 + (playerSize * 2.2);
             playerBalloon.style.width = size + 'px';
             playerBalloon.style.height = size + 'px';
-            playerSizeDisplay.textContent = `你: ${Math.floor(playerSize)}%`;
+            playerSizeDisplay.textContent = `プレイヤー: ???`;
 
             if (playerSize >= dangerThreshold) {
                 const danger = (playerSize - dangerThreshold) / (burstThreshold - dangerThreshold);
-                const r = Math.floor(79 + danger * 176);
-                const g = Math.floor(172 - danger * 172);
-                const b = Math.floor(254 - danger * 254);
-                playerBalloon.style.background = `radial-gradient(circle at 30% 30%, rgb(${r}, ${g}, ${b}), rgb(${Math.floor(r*0.8)}, ${Math.floor(g*0.8)}, ${Math.floor(b*0.8)}))`;
+                const baseR = 74, baseG = 144, baseB = 226; // #4A90E2
+                const targetR = 231, targetG = 76, targetB = 60; // #E74C3C
+                
+                const r = Math.floor(baseR + (targetR - baseR) * danger);
+                const g = Math.floor(baseG + (targetG - baseG) * danger);
+                const b = Math.floor(baseB + (targetB - baseB) * danger);
+                
+                playerBalloon.style.background = `rgb(${r}, ${g}, ${b})`;
                 
                 if (!playerBalloon.classList.contains('shaking')) {
                     playerBalloon.classList.add('shaking');
                 }
             } else {
-                playerBalloon.style.background = 'radial-gradient(circle at 30% 30%, #4facfe 0%, #00f2fe 100%)';
+                playerBalloon.style.background = '#4A90E2';
                 playerBalloon.classList.remove('shaking');
             }
         }
@@ -525,14 +451,14 @@
             if (gameState !== 'blowing' || playerSize < 10) return;
             
             gameState = 'battle';
-            blowButton.classList.add('hidden');
+            instruction.classList.add('hidden');
             battleButton.classList.add('hidden');
             
             coverMask.classList.add('hidden');
             const opponentSizePx = 80 + (opponentSize * 2.2);
             opponentBalloon.style.width = opponentSizePx + 'px';
             opponentBalloon.style.height = opponentSizePx + 'px';
-            opponentSizeDisplay.textContent = `对手: ${Math.floor(opponentSize)}%`;
+            opponentSizeDisplay.textContent = `相手: ${Math.floor(opponentSize)}%`;
 
             setTimeout(() => {
                 determineWinner();
@@ -543,14 +469,14 @@
             let resultTitle, resultText;
             
             if (playerSize > opponentSize) {
-                resultTitle = '🎉 你赢了！';
-                resultText = `你的气球 ${Math.floor(playerSize)}% vs 对手 ${Math.floor(opponentSize)}%`;
+                resultTitle = '勝利';
+                resultText = `プレイヤー ${Math.floor(playerSize)}% vs 相手 ${Math.floor(opponentSize)}%`;
             } else if (playerSize < opponentSize) {
-                resultTitle = '😢 你输了！';
-                resultText = `你的气球 ${Math.floor(playerSize)}% vs 对手 ${Math.floor(opponentSize)}%`;
+                resultTitle = '敗北';
+                resultText = `プレイヤー ${Math.floor(playerSize)}% vs 相手 ${Math.floor(opponentSize)}%`;
             } else {
-                resultTitle = '🤝 平局！';
-                resultText = `双方都是 ${Math.floor(playerSize)}%`;
+                resultTitle = '引き分け';
+                resultText = `両者 ${Math.floor(playerSize)}%`;
             }
 
             document.getElementById('resultTitle').textContent = resultTitle;
@@ -563,12 +489,12 @@
             gameState = 'end';
             createExplosion(playerBalloon);
             playerBalloon.style.display = 'none';
-            blowButton.classList.add('hidden');
+            instruction.classList.add('hidden');
             battleButton.classList.add('hidden');
             
             setTimeout(() => {
-                document.getElementById('resultTitle').textContent = '💥 爆炸了！';
-                document.getElementById('resultText').textContent = `气球膨胀到 ${Math.floor(playerSize)}% 就爆炸了！`;
+                document.getElementById('resultTitle').textContent = '破裂';
+                document.getElementById('resultText').textContent = `${Math.floor(playerSize)}% で破裂しました`;
                 resultScreen.classList.remove('hidden');
             }, 500);
         }
@@ -583,7 +509,7 @@
                 particle.className = 'particle';
                 particle.style.left = centerX + 'px';
                 particle.style.top = centerY + 'px';
-                particle.style.background = `hsl(${Math.random() * 60 + 180}, 100%, 50%)`;
+                particle.style.background = '#4A90E2';
                 document.body.appendChild(particle);
 
                 const angle = (Math.PI * 2 * i) / 20;
@@ -622,23 +548,22 @@
             playerSize = 0;
             opponentSize = Math.floor(Math.random() * 36) + 60;
             gameState = 'blowing';
-            continuousHighVolumeCount = 0;
             
             resultScreen.classList.add('hidden');
             playerBalloon.style.display = 'block';
             playerBalloon.classList.remove('shaking');
             playerBalloon.style.width = '80px';
             playerBalloon.style.height = '80px';
-            playerBalloon.style.background = 'radial-gradient(circle at 30% 30%, #4facfe 0%, #00f2fe 100%)';
+            playerBalloon.style.background = '#4A90E2';
             
             opponentBalloon.style.width = '80px';
             opponentBalloon.style.height = '80px';
             coverMask.classList.remove('hidden');
             
-            blowButton.classList.remove('hidden');
+            instruction.classList.remove('hidden');
             battleButton.classList.remove('hidden');
-            playerSizeDisplay.textContent = '你: 0%';
-            opponentSizeDisplay.textContent = '对手: ???';
+            playerSizeDisplay.textContent = 'プレイヤー: ???';
+            opponentSizeDisplay.textContent = '相手: ???';
             
             updateGame();
         }
