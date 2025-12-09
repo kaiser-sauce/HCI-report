@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>吹气球对战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            position: relative;
+        }
+
+        #startScreen, #resultScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 30px;
+            text-align: center;
+        }
+
+        #startScreen h1 {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            color: #ccc;
+            font-size: 1em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            text-align: left;
+            max-width: 350px;
+        }
+
+        .instructions strong {
+            color: #fff;
+            font-size: 1.1em;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #opponentArea {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #playerArea {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .balloon {
+            border-radius: 50%;
+            position: relative;
+            transition: background-color 0.3s;
+            box-shadow: inset -20px -20px 50px rgba(0,0,0,0.2);
+        }
+
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 30px;
+            background: #333;
+        }
+
+        #playerBalloon {
+            background: radial-gradient(circle at 30% 30%, #4facfe 0%, #00f2fe 100%);
+        }
+
+        #opponentBalloon {
+            background: radial-gradient(circle at 30% 30%, #fa709a 0%, #fee140 100%);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        #blowButton {
+            margin-top: 40px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: 5px solid white;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        #blowButton:active {
+            transform: scale(0.9);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #blowButton.pressed {
+            background: linear-gradient(135deg, #fa709a 0%, #ff6b95 100%);
+            animation: pulse-button 0.5s infinite;
+        }
+
+        @keyframes pulse-button {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        #battleButton {
+            margin-top: 20px;
+            padding: 20px 50px;
+            font-size: 1.3em;
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-3px, -3px) rotate(-2deg); }
+            20% { transform: translate(3px, 3px) rotate(2deg); }
+            30% { transform: translate(-3px, 3px) rotate(-2deg); }
+            40% { transform: translate(3px, -3px) rotate(2deg); }
+            50% { transform: translate(-3px, -3px) rotate(-2deg); }
+            60% { transform: translate(3px, 3px) rotate(2deg); }
+            70% { transform: translate(-3px, 3px) rotate(-2deg); }
+            80% { transform: translate(3px, -3px) rotate(2deg); }
+            90% { transform: translate(-3px, -3px) rotate(-2deg); }
+        }
+
+        .shaking {
+            animation: shake 0.3s infinite;
+        }
+
+        #coverMask {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4em;
+            color: white;
+            border-radius: 50%;
+        }
+
+        #resultScreen h2 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        #resultScreen p {
+            color: #ccc;
+            font-size: 1.3em;
+            margin-bottom: 30px;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        #debugInfo {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.8em;
+            font-family: monospace;
+        }
+
+        .method-selector {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .method-option {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            color: white;
+            cursor: pointer;
+        }
+
+        .method-option input {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .method-option label {
+            cursor: pointer;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="startScreen">
+            <h1>🎈 吹气球对战</h1>
+            <div class="instructions">
+                <strong>🎮 游戏规则：</strong><br>
+                1️⃣ <strong>按住按钮</strong>对着麦克风吹气<br>
+                2️⃣ 气球会随吹气膨胀<br>
+                3️⃣ 超过75%会变红抖动⚠️<br>
+                4️⃣ 达到100%会爆炸💥<br>
+                5️⃣ 松开按钮后点击"对战"<br>
+                6️⃣ 气球大的获胜🏆
+            </div>
+            
+            <div class="method-selector">
+                <div style="color: white; margin-bottom: 10px; font-weight: bold;">选择控制方式：</div>
+                <div class="method-option">
+                    <input type="radio" id="method1" name="method" value="button" checked>
+                    <label for="method1">🎯 按住按钮吹气（推荐）</label>
+                </div>
+                <div class="method-option">
+                    <input type="radio" id="method2" name="method" value="frequency">
+                    <label for="method2">🔬 频率识别（实验性）</label>
+                </div>
+                <div class="method-option">
+                    <input type="radio" id="method3" name="method" value="continuous">
+                    <label for="method3">⏱️ 持续音量（简单）</label>
+                </div>
+            </div>
+            
+            <button id="startBtn">开始游戏</button>
+        </div>
+
+        <div id="stats">
+            <span id="playerSize">你: 0%</span>
+            <span id="opponentSize">对手: ???</span>
+        </div>
+
+        <div id="opponentArea">
+            <div id="opponentBalloon" class="balloon hidden" style="width: 80px; height: 80px;">
+                <div id="coverMask">?</div>
+            </div>
+        </div>
+
+        <div id="playerArea">
+            <div id="playerBalloon" class="balloon hidden" style="width: 80px; height: 80px;"></div>
+            <button id="blowButton" class="hidden">
+                💨<br>
+                <span style="font-size: 0.6em;">按住吹气</span>
+            </button>
+            <button id="battleButton" class="hidden">⚔️ 开始对战</button>
+        </div>
+
+        <div id="debugInfo"></div>
+
+        <div id="resultScreen" class="hidden">
+            <h2 id="resultTitle"></h2>
+            <p id="resultText"></p>
+            <button id="restartBtn">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        let audioContext;
+        let analyser;
+        let microphone;
+        let dataArray;
+        let frequencyData;
+        let gameState = 'start';
+        let playerSize = 0;
+        let opponentSize = 0;
+        let isBlowing = false;
+        let detectionMethod = 'button';
+        let continuousHighVolumeCount = 0;
+        let lastVolumeTime = 0;
+        
+        const maxSize = 100;
+        const dangerThreshold = 75;
+        const burstThreshold = 100;
+
+        const startScreen = document.getElementById('startScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const playerBalloon = document.getElementById('playerBalloon');
+        const opponentBalloon = document.getElementById('opponentBalloon');
+        const playerSizeDisplay = document.getElementById('playerSize');
+        const opponentSizeDisplay = document.getElementById('opponentSize');
+        const coverMask = document.getElementById('coverMask');
+        const blowButton = document.getElementById('blowButton');
+        const battleButton = document.getElementById('battleButton');
+        const debugInfo = document.getElementById('debugInfo');
+
+        startBtn.addEventListener('click', initGame);
+        restartBtn.addEventListener('click', resetGame);
+        battleButton.addEventListener('click', handleBattle);
+
+        // 按钮控制
+        blowButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (detectionMethod === 'button') {
+                isBlowing = true;
+                blowButton.classList.add('pressed');
+            }
+        });
+
+        blowButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (detectionMethod === 'button') {
+                isBlowing = false;
+                blowButton.classList.remove('pressed');
+            }
+        });
+
+        blowButton.addEventListener('mousedown', () => {
+            if (detectionMethod === 'button') {
+                isBlowing = true;
+                blowButton.classList.add('pressed');
+            }
+        });
+
+        blowButton.addEventListener('mouseup', () => {
+            if (detectionMethod === 'button') {
+                isBlowing = false;
+                blowButton.classList.remove('pressed');
+            }
+        });
+
+        async function initGame() {
+            detectionMethod = document.querySelector('input[name="method"]:checked').value;
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                
+                analyser.fftSize = 2048;
+                analyser.smoothingTimeConstant = 0.3;
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                frequencyData = new Uint8Array(bufferLength);
+                
+                microphone.connect(analyser);
+                
+                startScreen.classList.add('hidden');
+                playerBalloon.classList.remove('hidden');
+                opponentBalloon.classList.remove('hidden');
+                blowButton.classList.remove('hidden');
+                battleButton.classList.remove('hidden');
+                
+                gameState = 'blowing';
+                opponentSize = Math.floor(Math.random() * 36) + 60;
+                updateGame();
+            } catch (err) {
+                alert('需要麦克风权限才能玩游戏！请允许使用麦克风。');
+            }
+        }
+
+        function detectBlowing() {
+            analyser.getByteTimeDomainData(dataArray);
+            analyser.getByteFrequencyData(frequencyData);
+            
+            const volume = dataArray.reduce((a, b) => a + Math.abs(b - 128)) / dataArray.length;
+            
+            switch(detectionMethod) {
+                case 'button':
+                    return isBlowing && volume > 10;
+                    
+                case 'frequency':
+                    // 分析低频能量（0-500Hz）
+                    const lowFreqEnergy = frequencyData.slice(0, 20).reduce((a, b) => a + b) / 20;
+                    const midFreqEnergy = frequencyData.slice(20, 80).reduce((a, b) => a + b) / 60;
+                    const ratio = lowFreqEnergy / (midFreqEnergy + 1);
+                    
+                    debugInfo.textContent = `音量: ${volume.toFixed(1)} | 低频: ${lowFreqEnergy.toFixed(1)} | 比率: ${ratio.toFixed(2)}`;
+                    
+                    // 吹气特征：低频能量高，且音量适中
+                    return volume > 15 && volume < 80 && ratio > 1.2;
+                    
+                case 'continuous':
+                    // 持续性检测
+                    const currentTime = Date.now();
+                    if (volume > 20) {
+                        if (currentTime - lastVolumeTime < 200) {
+                            continuousHighVolumeCount++;
+                        } else {
+                            continuousHighVolumeCount = 1;
+                        }
+                        lastVolumeTime = currentTime;
+                    } else {
+                        continuousHighVolumeCount = 0;
+                    }
+                    
+                    debugInfo.textContent = `音量: ${volume.toFixed(1)} | 连续: ${continuousHighVolumeCount}`;
+                    
+                    // 需要持续3帧以上的音量输入
+                    return continuousHighVolumeCount >= 3;
+            }
+        }
+
+        function updateGame() {
+            if (gameState !== 'blowing') return;
+
+            const blowingDetected = detectBlowing();
+            
+            if (blowingDetected) {
+                const intensity = Math.min(analyser.getByteTimeDomainData(dataArray), 1);
+                playerSize += 0.8;
+                playerSize = Math.min(playerSize, burstThreshold);
+            }
+
+            updateBalloonAppearance();
+            
+            if (playerSize >= burstThreshold) {
+                burstBalloon();
+                return;
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        function updateBalloonAppearance() {
+            const size = 80 + (playerSize * 2.2);
+            playerBalloon.style.width = size + 'px';
+            playerBalloon.style.height = size + 'px';
+            playerSizeDisplay.textContent = `你: ${Math.floor(playerSize)}%`;
+
+            if (playerSize >= dangerThreshold) {
+                const danger = (playerSize - dangerThreshold) / (burstThreshold - dangerThreshold);
+                const r = Math.floor(79 + danger * 176);
+                const g = Math.floor(172 - danger * 172);
+                const b = Math.floor(254 - danger * 254);
+                playerBalloon.style.background = `radial-gradient(circle at 30% 30%, rgb(${r}, ${g}, ${b}), rgb(${Math.floor(r*0.8)}, ${Math.floor(g*0.8)}, ${Math.floor(b*0.8)}))`;
+                
+                if (!playerBalloon.classList.contains('shaking')) {
+                    playerBalloon.classList.add('shaking');
+                }
+            } else {
+                playerBalloon.style.background = 'radial-gradient(circle at 30% 30%, #4facfe 0%, #00f2fe 100%)';
+                playerBalloon.classList.remove('shaking');
+            }
+        }
+
+        function handleBattle() {
+            if (gameState !== 'blowing' || playerSize < 10) return;
+            
+            gameState = 'battle';
+            blowButton.classList.add('hidden');
+            battleButton.classList.add('hidden');
+            
+            coverMask.classList.add('hidden');
+            const opponentSizePx = 80 + (opponentSize * 2.2);
+            opponentBalloon.style.width = opponentSizePx + 'px';
+            opponentBalloon.style.height = opponentSizePx + 'px';
+            opponentSizeDisplay.textContent = `对手: ${Math.floor(opponentSize)}%`;
+
+            setTimeout(() => {
+                determineWinner();
+            }, 1000);
+        }
+
+        function determineWinner() {
+            let resultTitle, resultText;
+            
+            if (playerSize > opponentSize) {
+                resultTitle = '🎉 你赢了！';
+                resultText = `你的气球 ${Math.floor(playerSize)}% vs 对手 ${Math.floor(opponentSize)}%`;
+            } else if (playerSize < opponentSize) {
+                resultTitle = '😢 你输了！';
+                resultText = `你的气球 ${Math.floor(playerSize)}% vs 对手 ${Math.floor(opponentSize)}%`;
+            } else {
+                resultTitle = '🤝 平局！';
+                resultText = `双方都是 ${Math.floor(playerSize)}%`;
+            }
+
+            document.getElementById('resultTitle').textContent = resultTitle;
+            document.getElementById('resultText').textContent = resultText;
+            resultScreen.classList.remove('hidden');
+            gameState = 'end';
+        }
+
+        function burstBalloon() {
+            gameState = 'end';
+            createExplosion(playerBalloon);
+            playerBalloon.style.display = 'none';
+            blowButton.classList.add('hidden');
+            battleButton.classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('resultTitle').textContent = '💥 爆炸了！';
+                document.getElementById('resultText').textContent = `气球膨胀到 ${Math.floor(playerSize)}% 就爆炸了！`;
+                resultScreen.classList.remove('hidden');
+            }, 500);
+        }
+
+        function createExplosion(element) {
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                particle.style.background = `hsl(${Math.random() * 60 + 180}, 100%, 50%)`;
+                document.body.appendChild(particle);
+
+                const angle = (Math.PI * 2 * i) / 20;
+                const velocity = 5 + Math.random() * 5;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity;
+
+                animateParticle(particle, vx, vy);
+            }
+        }
+
+        function animateParticle(particle, vx, vy) {
+            let x = parseFloat(particle.style.left);
+            let y = parseFloat(particle.style.top);
+            let opacity = 1;
+
+            function update() {
+                x += vx;
+                y += vy;
+                opacity -= 0.02;
+                
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.opacity = opacity;
+
+                if (opacity > 0) {
+                    requestAnimationFrame(update);
+                } else {
+                    particle.remove();
+                }
+            }
+            update();
+        }
+
+        function resetGame() {
+            playerSize = 0;
+            opponentSize = Math.floor(Math.random() * 36) + 60;
+            gameState = 'blowing';
+            continuousHighVolumeCount = 0;
+            
+            resultScreen.classList.add('hidden');
+            playerBalloon.style.display = 'block';
+            playerBalloon.classList.remove('shaking');
+            playerBalloon.style.width = '80px';
+            playerBalloon.style.height = '80px';
+            playerBalloon.style.background = 'radial-gradient(circle at 30% 30%, #4facfe 0%, #00f2fe 100%)';
+            
+            opponentBalloon.style.width = '80px';
+            opponentBalloon.style.height = '80px';
+            coverMask.classList.remove('hidden');
+            
+            blowButton.classList.remove('hidden');
+            battleButton.classList.remove('hidden');
+            playerSizeDisplay.textContent = '你: 0%';
+            opponentSizeDisplay.textContent = '对手: ???';
+            
+            updateGame();
+        }
+    </script>
+</body>
+</html>
